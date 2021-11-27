@@ -42,8 +42,8 @@ print('Running on device: {}'.format(device))
 # skip boolean is for skipping frames when reading from a video file
 webcam = True
 skip = False
-#input_filename = 'DSCF0909.MOV'
-#output_filename = f'out.avi'
+input_filename = 'test_vid2.mp4'
+output_filename = 'out3.avi'
 
 # State class to represent information for each frame
 # Given a list of names to track, each name is assigned:
@@ -109,15 +109,16 @@ if webcam:
     cap = cv2.VideoCapture(0)
 else:
     cap = cv2.VideoCapture(input_filename)
-    out = cv2.VideoWriter(output_filename,cv2.VideoWriter_fourcc('M','J','P','G'), 20, (1920,1080))
+    cap_w  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    cap_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap_fps = cap.get(cv2.CAP_PROP_FPS)
+    print(cap_w, cap_h, cap_fps)
+    out = cv2.VideoWriter(output_filename, cv2.VideoWriter_fourcc(*'XVID'), cap_fps, (cap_w,cap_h))
 
 
 # Check if the webcam is opened correctly
 if not cap.isOpened():
     raise IOError("Cannot open webcam")
-
-#cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-#cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 # For loop database of references
 face_dir_list = os.listdir('face_database')
@@ -152,6 +153,7 @@ while True:
     ret, frame = cap.read()
     if frame is None:
         break
+    
     if skip and (not webcam) and skip_frames > 0:
         skip_frames -= 1
         continue
@@ -160,7 +162,6 @@ while True:
     boxes, prob = mtcnn.detect(frame)
     new_state = State(face_dir_list)
     if boxes is not None:
-        #print(prob)
         for box in boxes:
             x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
             x1 = clamp(x1, 0, frame.shape[1]-1)
@@ -181,8 +182,10 @@ while True:
             else:
                 pass
                 #frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0,0,255), 2)
+    
     # Combine info from prev frame
     new_state.combine_state(cur_state)
+
     cur_state = new_state
     # Draw bounding rectangles and label face
     for n in cur_state.name_list:
