@@ -1,5 +1,5 @@
 # Face-Reidentification
-Face Reidentification using Facenet + Adding temporal consistency between frames in video
+Face Reidentification using Facenet + Temporal consistency between frames in video
 
 Modified code from:
 
